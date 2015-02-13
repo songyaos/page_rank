@@ -25,7 +25,7 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 //import org.apache.log4j.Logger;
 
 public class PageRank {
-	private static int PAGES_NUM = 6;//5716808;
+	private static int PAGES_NUM = 5716808;
 	
 	public static class Map extends Mapper<Text, Text,Text,Text >{
 		//private static final Logger sLogger = Loggr.getLogger(Map.class);
@@ -37,11 +37,13 @@ public class PageRank {
 		@Override
 		public void map(Text page_id_text, Text page_info_text, Context context) 
 				throws IOException, InterruptedException{
+			out_page_rank = 0;
+			this_page_current_rank = 0;
 			context.write(page_id_text,page_info_text);
 			page_info = page_info_text.toString().trim();
-			page_info_list = page_info.split("-");
-			this_page_current_rank = Double.parseDouble(page_info_list[0]);
-			neighbors = page_info_list[1].split("\\s+");//split by space
+			page_info_list = page_info.split(",");
+			this_page_current_rank = Double.valueOf(page_info_list[0]);
+			neighbors = page_info_list[1].split(" ");//split by space
 			
 			
 			out_page_rank = this_page_current_rank/neighbors.length;
@@ -62,15 +64,16 @@ public class PageRank {
 		public void reduce(Text page_id, Iterable<Text> page_info_list, Context context) 
 				throws IOException, InterruptedException{
 			sum = 0;
+			out_page_rank = 0;
 			for(Text page_info_text : page_info_list){
-				String[] page_info = page_info_text.toString().split("-");
+				String[] page_info = page_info_text.toString().split(",");
 				if (page_info.length > 1){
 					neighbors = page_info[1].trim();
 				}
-				sum += Double.parseDouble(page_info[0]);
+				sum += Double.valueOf(page_info[0]);
 			}
 			out_page_rank = DAMPING*sum + (1-DAMPING)/PAGES_NUM;
-			output_page_info = Double.toString(out_page_rank) + "-" + neighbors;
+			output_page_info = Double.toString(out_page_rank) + "," + neighbors;
 			
 			context.write(page_id,new Text(output_page_info));
 		}
@@ -127,7 +130,7 @@ public class PageRank {
 			items = line.split(":");
 			page_id = items[0].trim();
 			neighbors = items[1].trim();
-			writer.append(new Text(page_id), new Text(INITIAL_RANK + "-" + neighbors));
+			writer.append(new Text(page_id), new Text(INITIAL_RANK + "," + neighbors));
 		}
 		writer.close();
 		fileReader.close();
