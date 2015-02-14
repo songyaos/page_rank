@@ -5,7 +5,7 @@ implement page rank algorithm using mapreduce
 
 The program will compute the page rank for each web page in the input file
 
-The PageRank.jar file in the src folder can be used in the following way:
+The PageRank.jar file(in develop branch) in the src folder can be used in the following way:
 
 hadoop PageRank.jar PageRank.PageRank input_path output_path intermediate_path
 
